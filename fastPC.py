@@ -635,7 +635,7 @@ parser = argparse.ArgumentParser(description='fastPC: A Cuda-based Parallel PC A
 
 parser.add_argument('--significanceLevel', type=float, default=10**-6, help='Learning rate (default: 10^-6)')
 parser.add_argument('--cuda', type=bool, default=False, help='Use CUDA (GPU) (default: False)')
-parser.add_argument('--imputation', action="store_true", default=False, help='Use Multiple Imputation (default: False)')
+parser.add_argument('--imputation', default=False, help='Use Multiple Imputation (default: False)')
 parser.add_argument('--MI_DATASET', type=int, default=5, help='Number of Imputatation Dataset (default: 5)')
 parser.add_argument('--edgeType', type=str, default='s', choices=['s', 'c'], help='Edge Type is correlation coefficient or confidence (default: correlation coefficient)')
 parser.add_argument('data', help='(Path to) input dataset. Required file format: csv with each column as a random variable.')
