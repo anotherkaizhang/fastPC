@@ -52,7 +52,7 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 
 Run `fastPC.py --data yourdataset.csv` to run fastPC on your own dataset(s). fastPC will discover causal relationships between random variables in the dataset. 
 
-_Feel free to improve fastPC use [closed issues](https://github.com/kzhang14/fastPC/issues)._  
+_Feel free to improve fastPC use [Issues](https://github.com/kzhang14/fastPC/issues)._  
  
 ## Paper
 
