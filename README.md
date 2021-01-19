@@ -20,7 +20,6 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 ### Required Python Packages:
 * numpy
 * pandas
-* random
 * copy
 * scipy
 * os
@@ -30,6 +29,13 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 * networkx
 * argparse
 * miceforest
+* itertools
+* logging
+* torch
+* sklearn
+* time
+* random
+* re
 
 ### Data
 Required: Dataset containing multiple random variables
