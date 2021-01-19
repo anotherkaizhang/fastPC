@@ -14,7 +14,7 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 
 ### General
 * Python >= 3.5
-* [PyTorch](https://pytorch.org/get-started/locally/) (tested with PyTorch 0.4.1)
+* [PyTorch](https://pytorch.org/get-started/locally/) (tested with PyTorch 1.7.1)
 * Optional: CUDA (tested with CUDA 10.1) 
 
 ### Required Python Packages:
