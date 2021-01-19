@@ -675,7 +675,7 @@ else:
 MI_DATASET = args.MI_DATASET
 
 if cuda:
-    device = torch.device(9)
+    device = torch.device(1)
     torch.cuda.set_device(device)
     torch.cuda.current_device()
     # torch.cuda.get_device_capability(device=None)
