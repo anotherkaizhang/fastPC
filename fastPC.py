@@ -22,6 +22,7 @@ import re
 import miceforest as mf
 import sys
 import argparse
+import matplotlib
 import matplotlib.pyplot as plt
 get_ipython().run_line_magic('matplotlib', 'inline')
 
@@ -429,6 +430,126 @@ def nameMapping(df):
     mapping = {i: name for i, name in enumerate(df.columns)}
     return mapping
     
+def heatmap(data, row_labels, col_labels, ax=None,
+            cbar_kw={}, cbarlabel="", **kwargs):
+    """
+    Create a heatmap from a numpy array and two lists of labels.
+
+    Parameters
+    ----------
+    data
+        A 2D numpy array of shape (N, M).
+    row_labels
+        A list or array of length N with the labels for the rows.
+    col_labels
+        A list or array of length M with the labels for the columns.
+    ax
+        A `matplotlib.axes.Axes` instance to which the heatmap is plotted.  If
+        not provided, use current axes or create a new one.  Optional.
+    cbar_kw
+        A dictionary with arguments to `matplotlib.Figure.colorbar`.  Optional.
+    cbarlabel
+        The label for the colorbar.  Optional.
+    **kwargs
+        All other arguments are forwarded to `imshow`.
+    """
+
+    if not ax:
+        ax = plt.gca()
+
+    # Plot the heatmap
+    im = ax.imshow(data, **kwargs)
+
+    # Create colorbar
+    cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
+    cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
+
+    # We want to show all ticks...
+    ax.set_xticks(np.arange(data.shape[1]))
+    ax.set_yticks(np.arange(data.shape[0]))
+    # ... and label them with the respective list entries.
+    ax.set_xticklabels(col_labels)
+    ax.set_yticklabels(row_labels)
+
+    # Let the horizontal axes labeling appear on top.
+    ax.tick_params(top=True, bottom=False,
+                   labeltop=True, labelbottom=False)
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=-30, ha="right",
+             rotation_mode="anchor")
+
+    # Turn spines off and create white grid.
+    for edge, spine in ax.spines.items():
+        spine.set_visible(False)
+
+    ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
+    ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)
+    ax.grid(which="minor", color="w", linestyle='-', linewidth=3)
+    ax.tick_params(which="minor", bottom=False, left=False)
+
+    return im, cbar
+
+
+def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
+                     textcolors=("black", "white"),
+                     threshold=None, **textkw):
+    """
+    A function to annotate a heatmap.
+
+    Parameters
+    ----------
+    im
+        The AxesImage to be labeled.
+    data
+        Data used to annotate.  If None, the image's data is used.  Optional.
+    valfmt
+        The format of the annotations inside the heatmap.  This should either
+        use the string format method, e.g. "$ {x:.2f}", or be a
+        `matplotlib.ticker.Formatter`.  Optional.
+    textcolors
+        A pair of colors.  The first is used for values below a threshold,
+        the second for those above.  Optional.
+    threshold
+        Value in data units according to which the colors from textcolors are
+        applied.  If None (the default) uses the middle of the colormap as
+        separation.  Optional.
+    **kwargs
+        All other arguments are forwarded to each call to `text` used to create
+        the text labels.
+    """
+
+    if not isinstance(data, (list, np.ndarray)):
+        data = im.get_array()
+
+    # Normalize the threshold to the images color range.
+    if threshold is not None:
+        threshold = im.norm(threshold)
+    else:
+        threshold = im.norm(data.max())/2.
+
+    # Set default alignment to center, but allow it to be
+    # overwritten by textkw.
+    kw = dict(horizontalalignment="center",
+              verticalalignment="center")
+    kw.update(textkw)
+
+    # Get the formatter in case a string is supplied
+    if isinstance(valfmt, str):
+        valfmt = matplotlib.ticker.StrMethodFormatter(valfmt)
+
+    # Loop over the data and create a `Text` for each "pixel".
+    # Change the text's color depending on the data.
+    texts = []
+    for i in range(data.shape[0]):
+        for j in range(data.shape[1]):
+            kw.update(color=textcolors[int(im.norm(data[i, j]) > threshold)])
+            text = im.axes.text(j, i, valfmt(data[i, j], None), **kw)
+            texts.append(text)
+
+    return texts
+
+
 def plotgraph(g, mapping):
     g = nx.relabel_nodes(g, mapping)
     plt.figure(num=None, figsize=(18, 18), dpi=80)
@@ -439,23 +560,64 @@ def plotgraph(g, mapping):
     nx.draw_networkx_edges(g,pos)
     nx.draw_networkx_labels(g,pos)
     
+    ### Plot adjacency matrix
+    A = nx.adjacency_matrix(g).todense()
+    x_labels = mapping.values()
+    y_labels = mapping.values()
+    
+    print(x_labels)
+    print(y_labels)
+
+    fig, ax = plt.subplots()
+    im = ax.imshow(A)
+
+    # We want to show all ticks...
+    ax.set_xticks(np.arange(len(x_labels)))
+    ax.set_yticks(np.arange(len(y_labels)))
+    # ... and label them with the respective list entries
+    ax.set_xticklabels(x_labels)
+    ax.set_yticklabels(y_labels)
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    for i in range(len(x_labels)):
+        for j in range(len(y_labels)):
+            text = ax.text(j, i, A[i, j],
+                           ha="center", va="center", color="w")
+
+    ax.set_title("Causal Relations")
+    fig.tight_layout()
+    plt.show()
+
+    fig, ax = plt.subplots()
+    im, cbar = heatmap(A, x_labels, y_labels, ax=ax,
+                       cmap="YlGn", cbarlabel="harvest [t/year]")
+    texts = annotate_heatmap(im, valfmt="{x:.1f} t")
+
+    fig.tight_layout()
+    plt.show()
+
+    
 
 def savegraph(gs, corr_matrix, mapping, edgeType):
-    if len(gs) == 1:
-        g = gs[0]
-    else:
-        from collections import Counter, OrderedDict
-        edges_all = [e  for g in gs for e in list(g.edges)]
-        edges_appear_count = Counter(edges_all)
-        edges_keep = edges_all # [v  for v, num in edges_all.items() if num == MI_DATASET]
-        g=nx.empty_graph(corr_matrix.shape[0],create_using=nx.DiGraph())
-        g.add_edges_from(edges_keep)
+#     if len(gs) == 1:
+#         g = gs[0]
+#     else:  
+    from collections import Counter, OrderedDict  # if MI_DATASET is 1, still need to run this
+    edges_all = [e  for g in gs for e in list(g.edges)]
+    edges_appear_count = Counter(edges_all)
+    edges_keep = edges_all # [v  for v, num in edges_all.items() if num == MI_DATASET]
+    g=nx.empty_graph(corr_matrix.shape[0],create_using=nx.DiGraph())
+    g.add_edges_from(edges_keep)
     
     ### save edges to excel
-    mapping_r = {name:i for i, name in mapping.items()}
     strength = []
-
-    for i, j in g.edges:
+    g_edges = list(g.edges)   # all edges
+    
+    for (i, j) in g_edges:
         if edgeType == 's':
             if cuda:
                 print(corr_matrix[i, j].cpu().item())
@@ -469,9 +631,27 @@ def savegraph(gs, corr_matrix, mapping, edgeType):
         else:
             strength.append(np.nan)
             
-    data = {'Cause': [mapping[e[0]] for e in g.edges], 'Effect': [mapping[e[1]] for e in g.edges], 'Strength': [round(a, 3) for a in strength]}
-    graph_excel = pd.DataFrame.from_dict(data)
+    graph_excel = {'Cause': [mapping[e[0]] for e in g_edges], 'Effect': [mapping[e[1]] for e in g_edges], 'Strength': [round(a, 3) for a in strength]}
+    graph_excel = pd.DataFrame.from_dict(graph_excel)
     graph_excel.to_excel("graph_excel.xlsx", index=False)
+    
+    ### Seperate Single and Bidirectional edges
+    graph_excel_single = {'Cause': [], 'Effect': [], 'Strength':[]}
+    graph_excel_bi = {'Cause': [], 'Effect': [], 'Strength':[]}
+    for m, (i, j) in enumerate(g_edges):
+        if (j, i) not in g_edges: # Single directional
+            graph_excel_single['Cause'].append(mapping[i])
+            graph_excel_single['Effect'].append(mapping[j])
+            graph_excel_single['Strength'].append(strength[m])
+        else:  # bidirectional edges
+            graph_excel_bi['Cause'].append(mapping[i])
+            graph_excel_bi['Effect'].append(mapping[j])
+            graph_excel_bi['Strength'].append(strength[m])
+            
+    graph_excel_single = pd.DataFrame.from_dict(graph_excel_single)
+    graph_excel_single.to_excel("graph_excel_single_direction.xlsx", index=False)
+    graph_excel_bi = pd.DataFrame.from_dict(graph_excel_bi)
+    graph_excel_bi.to_excel("graph_excel_bidirection.xlsx", index=False)  
     
 
 
