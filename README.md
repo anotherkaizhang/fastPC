@@ -28,7 +28,7 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 * pylab
 * networkx
 * argparse
-* miceforest
+* [miceforest](https://pypi.org/project/miceforest/)
 * itertools
 * logging
 * torch
