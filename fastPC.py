@@ -710,6 +710,16 @@ def getknownedges(knownedges, mapping_r):
 # In[107]:
 
 def main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType):
+    ## check corr=1
+    corr = np.corrcoef(data.values.T)
+
+    for i in range(corr.shape[0]):
+        for j in range(i+1, corr.shape[0]):
+            if abs(corr[i,j]) > 0.999999:
+                raise Exception('Feature ' + str(data.columns[i]) + ' and feature ' str(data.columns[j]) + ' are strongly correlated, you might want to delete one feature.')
+                
+    
+    
     mapping = {i: name for i, name in enumerate(df.columns)}
     mapping_r = {name:i for i, name in mapping.items()}
 
@@ -860,7 +870,7 @@ if cuda:
     torch.cuda.current_device()
     # torch.cuda.get_device_capability(device=None)
 
-    
+   
 # df = pd.read_excel('data/sim_data.xlsx')
 # print('df is', df)
 main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType)
