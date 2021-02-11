@@ -711,12 +711,12 @@ def getknownedges(knownedges, mapping_r):
 
 def main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType):
     ## check corr=1
-    corr = np.corrcoef(data.values.T)
+    corr = np.corrcoef(df.values.T)
 
     for i in range(corr.shape[0]):
         for j in range(i+1, corr.shape[0]):
             if abs(corr[i,j]) > 0.999999:
-                raise Exception('Feature ' + str(data.columns[i]) + ' and feature ' + str(data.columns[j]) + ' are strongly correlated ' + str(corr[i,j]) + ', you might want to delete one feature.')
+                raise Exception('Feature ' + str(df.columns[i]) + ' and feature ' + str(df.columns[j]) + ' are strongly correlated ' + str(corr[i,j]) + ', you might want to delete one feature.')
                 
     
     
