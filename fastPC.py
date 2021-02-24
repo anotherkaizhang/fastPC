@@ -560,6 +560,7 @@ def plotgraph(g, mapping):
     nx.draw_networkx_edges(g,pos)
     nx.draw_networkx_labels(g,pos)
     
+    """
     ### Plot adjacency matrix
     A = nx.adjacency_matrix(g).todense()
     x_labels = mapping.values()
@@ -599,7 +600,7 @@ def plotgraph(g, mapping):
 
     fig.tight_layout()
     plt.show()
-
+    """
     
 
 def savegraph(gs, corr_matrix, mapping, edgeType):
