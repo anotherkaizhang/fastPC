@@ -729,7 +729,7 @@ def main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, 
             txt = input("Dataframe contains missing value(s), do you want to perform Multiple Imputation? (Y/N)")
             if txt.strip() in ['Y', 'y']:
                 imputation = True
-                edgeType = 'c'
+                # edgeType = 'c'
             elif txt.strip() in ['N', 'n']:
                 sys.exit("Execution terminated: please fill missing data in the dataframe.")
             else:
