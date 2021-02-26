@@ -829,7 +829,7 @@ parser.add_argument('--cuda', type=bool, default=False, help='Use CUDA (GPU) (de
 parser.add_argument('--imputation', default=False, help='Use Multiple Imputation (default: False)')
 parser.add_argument('--MI_DATASET', type=int, default=5, help='Number of Imputatation Dataset (default: 5)')
 parser.add_argument('--edgeType', type=str, default='s', choices=['s', 'c'], help='Edge Type is correlation coefficient or confidence (default: correlation coefficient)')
-parser.add_argument('data', help='(Path to) input dataset. Required file format: csv with each column as a random variable.')
+parser.add_argument('dataFile', help='(Path to) input dataset. Required file format: csv with each column as a random variable.')
 parser.add_argument('--knownEdgesFile', nargs='?', help='(Path to) txt file containing known edges. Required file format: txt with a row (format: variable1, variable2) for each known directed edge: variable1 --> variable2.')
 parser.add_argument('--blackListFile', nargs='?', help='(Path to) txt file containing edges should not appear. Required file format: txt with a row (format: variable1, variable2) for each known directed edge: variable1 --> variable2.')
 parser.add_argument('--tiersFile', nargs='?', help='(Path to) txt file containing tiers in terms of time. Required file format: txt with a row (format: [variable1, variable2, variable3]) for each tier starting the earliest tiers.')
@@ -847,7 +847,7 @@ alpha = args.significanceLevel
 cuda = args.cuda
 imputation = args.imputation
 edgeType = args.edgeType # 's': strength of correlation, c': confidence
-df = pd.read_excel(args.data)
+dataFile = args.dataFile
 if args.knownEdgesFile is not None:
     knownEdgesFile = args.knownEdgesFile
 else:
@@ -871,8 +871,7 @@ if cuda:
     torch.cuda.current_device()
     # torch.cuda.get_device_capability(device=None)
 
-   
-# df = pd.read_excel('data/sim_data.xlsx')
-# print('df is', df)
+
+df = pd.read_excel(dataFile)
 main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType)
 
