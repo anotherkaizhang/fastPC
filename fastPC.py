@@ -196,6 +196,7 @@ def estimate_skeleton(corr_matrix, sample_size, alpha, init_graph, know_edge_lis
     
     while l >= 0:
         print(f"==================> Performing round {l} .....")
+#         pn_generated_text.object = "==================> Performing round {} .....".format(l)
         cont = False
 
         ijk = np.empty(shape=(batch_size,(2 + l)), dtype = int)
@@ -604,9 +605,6 @@ def plotgraph(g, mapping):
     
 
 def savegraph(gs, corr_matrix, mapping, edgeType):
-#     if len(gs) == 1:
-#         g = gs[0]
-#     else:  
     from collections import Counter, OrderedDict  # if MI_DATASET is 1, still need to run this
     edges_all = [e  for g in gs for e in list(g.edges)]
     edges_appear_count = Counter(edges_all)
@@ -656,9 +654,7 @@ def savegraph(gs, corr_matrix, mapping, edgeType):
     
 
 
-# In[102]:
-
-def getblackList(blacklist, node_size):
+def getblackList(df, blacklist, node_size):
     node_ids = range(node_size)
     init_graph = _create_complete_graph(node_ids)
     with open(blacklist, 'rb') as f:
@@ -668,10 +664,6 @@ def getblackList(blacklist, node_size):
             init_graph.remove_edge(i,j)
     return init_graph
 
-# getblackList(blacklist)
-
-
-# In[103]:
 
 
 def getTiers(tiers, mapping_r):
@@ -684,10 +676,6 @@ def getTiers(tiers, mapping_r):
             timeinfodict[n] = line
             n+=1
     return timeinfodict
-# getTiers(tiers)
-
-
-# In[104]:
 
 
 def getknownedges(knownedges, mapping_r):
@@ -698,19 +686,12 @@ def getknownedges(knownedges, mapping_r):
             cause, effect = line.splitlines()[0].decode("utf-8").split(',')
             know_edge_list.append([mapping_r[cause.strip()], mapping_r[effect.strip()]])
     return know_edge_list
-# getknownedges(knownedges)
 
 
-# #### Generate Data
-
-# ### PC algorithm
-
-# In[106]:
-
-
-# In[107]:
-
-def main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType):
+def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType):
+    ## read file
+    df = pd.read_excel(dataFile)
+    
     ## check corr=1
     corr = np.corrcoef(df.values.T)
 
@@ -724,21 +705,22 @@ def main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, 
     mapping = {i: name for i, name in enumerate(df.columns)}
     mapping_r = {name:i for i, name in mapping.items()}
 
-    def checkNull(imputation, edgeType):
-        if df.isnull().values.any():
-            txt = input("Dataframe contains missing value(s), do you want to perform Multiple Imputation? (Y/N)")
-            if txt.strip() in ['Y', 'y']:
-                imputation = True
+#     def checkNull(imputation, edgeType):
+#         if df.isnull().values.any():
+#             txt = input("Dataframe contains missing value(s), do you want to perform Multiple Imputation? (Y/N)")
+#             if txt.strip() in ['Y', 'y']:
+#             imputation = True
                 # edgeType = 'c'
-            elif txt.strip() in ['N', 'n']:
-                sys.exit("Execution terminated: please fill missing data in the dataframe.")
-            else:
-                print('Invalid input')
-                checkNull()
-        return imputation, edgeType
-                
-    imputation, edgeType = checkNull(imputation, edgeType)
-    
+#             elif txt.strip() in ['N', 'n']:
+#                 sys.exit("Execution terminated: please fill missing data in the dataframe.")
+#             else:
+#                 print('Invalid input')
+#                 checkNull()
+#         return imputation, edgeType
+#     imputation, edgeType = checkNull(imputation, edgeType)
+    if df.isnull().values.any():
+        imputation=True
+        
     ### Multiple Imputation
     datasets = []
     if imputation:
@@ -774,7 +756,7 @@ def main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, 
 
         ### Blacklist
         if blackListFile:
-            init_graph = getblackList(blackListFile, node_size)
+            init_graph = getblackList(df, blackListFile, node_size)
         else:
             init_graph = _create_complete_graph(range(node_size))
 
@@ -810,18 +792,6 @@ def main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, 
     savegraph(gs, corr_matrix, mapping, edgeType)
 
 
-# In[108]:
-
-# # Parameter setting
-# alpha = 10**-10
-# cuda = True
-# imputation = False
-# edgeType = 's' # 's': strength of correlation, c': confidence
-# knownEdgesFile = None # 'data/knownedges.txt'
-# blackListFile = None  # 'data/blacklist.txt'
-# tiersFile = None # 'data/tiers.txt'
-# MI_DATASET = 5
-
 parser = argparse.ArgumentParser(description='fastPC: A Cuda-based Parallel PC Algorithm')
 
 parser.add_argument('--significanceLevel', type=float, default=10**-6, help='Learning rate (default: 10^-6)')
@@ -838,16 +808,17 @@ args = parser.parse_args()
 
 print("Arguments:", args)
 
-if torch.cuda.is_available():
-    if not args.cuda:
-        print('WARNING: You have a CUDA device, you should probably run with "--cuda True" to speed up training.')
+# if torch.cuda.is_available():
+#     if not args.cuda:
+#         print('WARNING: You have a CUDA device, you should probably run with "--cuda True" to speed up training.')
 
-# Parameter setting
 alpha = args.significanceLevel
 cuda = args.cuda
 imputation = args.imputation
-edgeType = args.edgeType # 's': strength of correlation, c': confidence
+edgeType = args.edgeType 
 dataFile = args.dataFile
+MI_DATASET = args.MI_DATASET
+
 if args.knownEdgesFile is not None:
     knownEdgesFile = args.knownEdgesFile
 else:
@@ -860,18 +831,14 @@ if args.tiersFile is not None:
     tiersFile = args.tiersFile
 else:
     tiersFile=None
-# knownEdgesFile = None # 'data/knownedges.txt'
-# blackListFile = None  # 'data/blacklist.txt'
-# tiersFile = None # 'data/tiers.txt'
-MI_DATASET = args.MI_DATASET
 
 if cuda:
     device = torch.device(1)
     torch.cuda.set_device(device)
     torch.cuda.current_device()
-    # torch.cuda.get_device_capability(device=None)
+else:
+    device = torch.device('cpu')
 
 
-df = pd.read_excel(dataFile)
-main(df, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType)
+main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType)
 
