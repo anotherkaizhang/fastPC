@@ -795,7 +795,10 @@ def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputa
 parser = argparse.ArgumentParser(description='fastPC: A Cuda-based Parallel PC Algorithm')
 
 parser.add_argument('--significanceLevel', type=float, default=10**-6, help='Learning rate (default: 10^-6)')
-parser.add_argument('--cuda', type=bool, default=False, help='Use CUDA (GPU) (default: False)')
+# parser.add_argument('--cuda', type=bool, default=False, help='Use CUDA (GPU) (default: False)') # wrong, always true
+parser.add_argument('--gpu', dest='cuda', action='store_true')
+parser.add_argument('--no-gpu', dest='cuda', action='store_false')
+parser.set_defaults(cuda=False)
 parser.add_argument('--imputation', default=False, help='Use Multiple Imputation (default: False)')
 parser.add_argument('--MI_DATASET', type=int, default=5, help='Number of Imputatation Dataset (default: 5)')
 parser.add_argument('--edgeType', type=str, default='s', choices=['s', 'c'], help='Edge Type is correlation coefficient or confidence (default: correlation coefficient)')
