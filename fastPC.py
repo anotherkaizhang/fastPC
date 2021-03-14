@@ -632,7 +632,7 @@ def savegraph(gs, corr_matrix, mapping, edgeType):
             
     graph_excel = {'Cause': [mapping[e[0]] for e in g_edges], 'Effect': [mapping[e[1]] for e in g_edges], 'Strength': [round(a, 3) for a in strength]}
     graph_excel = pd.DataFrame.from_dict(graph_excel)
-    graph_excel.to_excel("graph_excel.xlsx", index=False)
+    graph_excel.to_csv("graph_excel.csv", index=False)
     
     ### Seperate Single and Bidirectional edges
     graph_excel_single = {'Cause': [], 'Effect': [], 'Strength':[]}
@@ -648,9 +648,9 @@ def savegraph(gs, corr_matrix, mapping, edgeType):
             graph_excel_bi['Strength'].append(strength[m])
             
     graph_excel_single = pd.DataFrame.from_dict(graph_excel_single)
-    graph_excel_single.to_excel("graph_excel_single_direction.xlsx", index=False)
+    graph_excel_single.to_csv("graph_excel_single_direction.csv", index=False)
     graph_excel_bi = pd.DataFrame.from_dict(graph_excel_bi)
-    graph_excel_bi.to_excel("graph_excel_bidirection.xlsx", index=False)  
+    graph_excel_bi.to_csv("graph_excel_bidirection.csv", index=False)  
     
 
 
@@ -690,7 +690,7 @@ def getknownedges(knownedges, mapping_r):
 
 def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType):
     ## read file
-    df = pd.read_excel(dataFile)
+    df = pd.read_csv(dataFile)
     
     ## check corr=1
     corr = np.corrcoef(df.values.T)
