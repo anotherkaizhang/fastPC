@@ -2,7 +2,7 @@
 
 The A Cuda-based Parallel PC Algorithm (fastPC) is implemented in PyTorch. Given a dataframe as input, fastPC discovers **causal relationships** between these random variables and outputs a causal graph. It can also perform multiple imputation. 
 
-Corresponding Paper:
+Paper:
 
 ## Functionality
 
@@ -30,8 +30,7 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 * itertools
 * logging
 * time
-* random
-* re
+
 
 ### Data
 Required: Dataset containing multiple random variables
