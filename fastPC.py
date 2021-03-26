@@ -565,10 +565,10 @@ def savegraph(gs, corr_matrix, mapping, edgeType):
     for (i, j) in g_edges:
         if edgeType == 's':
             if cuda:
-                print(corr_matrix[i, j].cpu().item())
+                # print(corr_matrix[i, j].cpu().item())
                 strength.append(corr_matrix[i, j].cpu().item())
             else:
-                print(corr_matrix[i, j].item())
+                # print(corr_matrix[i, j].item())
                 strength.append(corr_matrix[i, j].item())
         elif edgeType == 'c':
             strength.append(edges_appear_count[(i, j)])
