@@ -45,7 +45,7 @@ The folder 'data' contains one small dataset for demonstration purposes.
 
 Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the functionality. 
 
-Run `fastPC.py --data yourdataset.csv` to run fastPC on your own dataset(s). fastPC will discover causal relationships between random variables in the dataset, and outputs a completed partially directed acyclic graph (CPDAG). 
+Run `fastPC.py --data yourpath/yourdata.csv` to run fastPC on your own dataset(s). fastPC will discover causal relationships between random variables in the dataset, and outputs a completed partially directed acyclic graph (CPDAG). 
 
 The causal graph will be plotted as well as saved in three files:
 `graph_excel.csv`: contains all edges in the CPDAG;
