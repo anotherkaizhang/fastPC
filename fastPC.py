@@ -749,6 +749,9 @@ def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputa
         corr_matrix = np.corrcoef(df.values.T)
         corr_matrix = torch.tensor(corr_matrix, dtype=torch.float32)
         
+        # stablize
+        corr_matrix += 1e-6*np.random.random(corr_matrix.shape)
+        
         if cuda:
             corr_matrix = corr_matrix.to(device)
 
