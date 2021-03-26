@@ -15,12 +15,12 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 ### General
 * Python >= 3.5
 * [PyTorch](https://pytorch.org/get-started/locally/) (tested with PyTorch 1.7.1)
-* matplotlib==3.3.3 
-* miceforest==2.0.3 (https://pypi.org/project/miceforest/)
-* networkx==2.5
-* numpy==1.19.2
-* pandas==1.1.3
-* scikit-learn==0.24.1
+* matplotlib>=3.3.3 
+* miceforest>=2.0.3 (https://pypi.org/project/miceforest/)
+* networkx>=2.5
+* numpy>=1.19.2
+* pandas>=1.1.3
+* scikit-learn>=0.24.1
 * Optional: CUDA (tested with CUDA 11.0) 
 
 ### Other Required Python Packages:
