@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 from __future__ import print_function
 from itertools import combinations, permutations
 import logging
@@ -17,7 +11,6 @@ from sklearn.linear_model import LinearRegression
 import time
 import pandas as pd
 from random import random
-# from tqdm import tqdm
 import re
 import miceforest as mf
 import sys
@@ -29,11 +22,9 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 _logger = logging.getLogger(__name__)
 
 
-# In[2]:
-
 
 # This is a function to merge several nodes into one in a Networkx graph
-def merge_nodes(G, nodes, new_node): # , attr_dict=None, **attr):
+def merge_nodes(G, nodes, new_node):
     """
     Merges the selected `nodes` of the graph G into one `new_node`,
     meaning that all the edges that pointed to or from one of these
@@ -42,23 +33,19 @@ def merge_nodes(G, nodes, new_node): # , attr_dict=None, **attr):
     """
     H = G.copy()
     
-    H.add_node(new_node) # , attr_dict) # , **attr) # Add the 'merged' node
+    H.add_node(new_node)
     
     for n1,n2 in G.edges(data=False):
         # For all edges related to one of the nodes to merge,
         # make an edge going to or coming from the `new gene`.
         if n1 in nodes:
-            H.add_edge(new_node,n2)#,data)
+            H.add_edge(new_node,n2)
         elif n2 in nodes:
-            H.add_edge(n1,new_node)# ,data)
+            H.add_edge(n1,new_node)
     
-    for n in nodes: # remove the merged nodes
+    for n in nodes:
         H.remove_node(n)
     return H
-
-
-# In[3]:
-
 
 def _create_complete_graph(node_ids):
     """Create a complete graph from the list of node ids.
@@ -75,32 +62,27 @@ def _create_complete_graph(node_ids):
         g.add_edge(i, j)
     return g
 
-
-# In[4]:
-
-
 def func_z_test(corr_matrix, ijk, l, g, sep_set, sample_size):
     global cont
     # Move ijk to GPU
-    
     ijk = torch.LongTensor(ijk)
     if cuda:
         ijk = ijk.to(device)
     
     if l == 0:
         H = corr_matrix[ijk[:,0:2].repeat(1,2).view(-1,2,2).transpose(1,2),
-                        ijk[:,0:2].repeat(1,2).view(-1,2,2)]#.cuda(device=device)
+                        ijk[:,0:2].repeat(1,2).view(-1,2,2)]
         if cuda:
             H = H.to(device)
     else:
         M0 = corr_matrix[ijk[:,0:2].repeat(1,2).view(-1,2,2).transpose(1,2),
-                         ijk[:,0:2].repeat(1,2).view(-1,2,2)]#.cuda(device=device)
+                         ijk[:,0:2].repeat(1,2).view(-1,2,2)]
 
         M1 = corr_matrix[ijk[:,0:2].repeat(1,l).view(-1, l, 2).transpose(1,2),
-                         ijk[:,2:].repeat(1,2).view(-1, 2, l)]#.cuda(device=device)
+                         ijk[:,2:].repeat(1,2).view(-1, 2, l)]
 
         M2 = corr_matrix[ijk[:,2:].repeat(1,l).view(-1,l,l).transpose(1,2),
-                         ijk[:,2:].repeat(1,l).view(-1,l,l)]#.cuda(device=device)
+                         ijk[:,2:].repeat(1,l).view(-1,l,l)]
         if cuda:
             M0 = M0.to(device)
             M1 = M1.to(device)
@@ -116,7 +98,6 @@ def func_z_test(corr_matrix, ijk, l, g, sep_set, sample_size):
     rho_ijs = torch.clamp(rho_ijs, min=0.0 ,max=CUT_THR)
             
     #    Note: log1p for more numerical stability, see "Aaux.R";
-    # z_val = torch.abs(1/2 * torch.log((1 + rho_ijs)/(1-rho_ijs)))
     z_val = 1/2 * torch.log1p((2*rho_ijs)/(1-rho_ijs))
     tau = torch.tensor(spst.norm.ppf(1-alpha/2)/np.sqrt(sample_size - l - 3) * np.ones(shape=(ijk.shape[0],)), dtype=torch.float32)
 
@@ -138,19 +119,7 @@ def func_z_test(corr_matrix, ijk, l, g, sep_set, sample_size):
         cont = True
         sep_set[ii[t]][jj[t]] |= set(kk[t,:])
         sep_set[jj[t]][ii[t]] |= set(kk[t,:])
-        # sep_set[j[t]][i[t]] = sep_set[i[t]][j[t]]
-        
-    # Change ijk back to CPU and reset to empty
-    # ijk = ijk.cpu().numpy()
-    # ijk = np.empty_like(ijk)
-
-    # Reset index back to 0
-    # index = 0
     return g, sep_set
-
-
-# In[5]:
-
 
 def estimate_skeleton(corr_matrix, sample_size, alpha, init_graph, know_edge_list, **kwargs):
     global cont
@@ -190,13 +159,11 @@ def estimate_skeleton(corr_matrix, sample_size, alpha, init_graph, know_edge_lis
 
                 
     l = node_size - 2
-    
-#     torch.set_default_tensor_type(torch.DoubleTensor)
-    batch_size = 5000   # (-_-#) A Magic Number   
+   
+    batch_size = 5000  
     
     while l >= 0:
         print(f"==================> Performing round {l} .....")
-#         pn_generated_text.object = "==================> Performing round {} .....".format(l)
         cont = False
 
         ijk = np.empty(shape=(batch_size,(2 + l)), dtype = int)
@@ -220,31 +187,20 @@ def estimate_skeleton(corr_matrix, sample_size, alpha, init_graph, know_edge_lis
                 if len(adj_i) < l:
                     continue
                 for k in combinations(adj_i, l):
-                    # print(f"Test edge {i, j} on {k}")
                     ijk[index, 0:2] = [i,j]    # torch.LongTensor([i, j])  # .cuda(device=device)
                     ijk[index, 2:] = k         # torch.LongTensor(k)       # .cuda(device=device)
                     index += 1
                     if index == batch_size:
                         g, sep_set = func_z_test(corr_matrix, ijk, l, g, sep_set, sample_size)
-                        index = 0
-                            
+                        index = 0                
                         
-        # ******************************
         if index != 0:
             ijk_batch = ijk[:index, :]
             g, sep_set = func_z_test(corr_matrix, ijk_batch, l, g, sep_set, sample_size)
-        # ***************************************
         
         l -= 1
-        
-        #if cont is False:
-        #    break
 
     return (g, sep_set)
-
-
-# In[6]:
-
 
 def estimate_cpdag(skel_graph, sep_set, timeInfoDict, know_edge_list):
     """Estimate a CPDAG from the skeleton graph and separation sets
@@ -405,9 +361,6 @@ def estimate_cpdag(skel_graph, sep_set, timeInfoDict, know_edge_list):
     return dag
 
 
-# In[7]:
-
-
 def stdmtx(X):
     """
     Convert Normal Distribution to Standard Normal Distribution
@@ -422,8 +375,6 @@ def stdmtx(X):
     X = X / stds[np.newaxis, :]
     return np.nan_to_num(X)
 
-
-# In[101]:
 
 
 def nameMapping(df):
@@ -689,7 +640,6 @@ def getknownedges(knownedges, mapping_r):
 
 
 def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputation, edgeType):
-    ## read file
     df = pd.read_csv(dataFile)
     
     ## check corr=1
@@ -798,7 +748,6 @@ def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputa
 parser = argparse.ArgumentParser(description='fastPC: A Cuda-based Parallel PC Algorithm')
 
 parser.add_argument('--significanceLevel', type=float, default=10**-6, help='Learning rate (default: 10^-6)')
-# parser.add_argument('--cuda', type=bool, default=False, help='Use CUDA (GPU) (default: False)') # wrong, always true
 parser.add_argument('--gpu', dest='cuda', action='store_true')
 parser.add_argument('--no-gpu', dest='cuda', action='store_false')
 parser.set_defaults(cuda=False)
@@ -813,10 +762,6 @@ parser.add_argument('--tiersFile', nargs='?', help='(Path to) txt file containin
 args = parser.parse_args()
 
 print("Arguments:", args)
-
-# if torch.cuda.is_available():
-#     if not args.cuda:
-#         print('WARNING: You have a CUDA device, you should probably run with "--cuda True" to speed up training.')
 
 alpha = args.significanceLevel
 cuda = args.cuda
