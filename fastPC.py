@@ -197,7 +197,7 @@ def estimate_skeleton(corr_matrix, sample_size, alpha, init_graph, know_edge_lis
 
     return (g, sep_set)
 
-def estimate_cpdag(skel_graph, sep_set, timeInfoDict, know_edge_list):
+def estimate_cpdag(skel_graph, sep_set, timeInfoDict, know_edge_list, blacklist_single):
     """Estimate a CPDAG from the skeleton graph and separation sets
     returned by the estimate_skeleton() function.
 
@@ -215,6 +215,12 @@ def estimate_cpdag(skel_graph, sep_set, timeInfoDict, know_edge_list):
     dag = skel_graph.to_directed()
     node_ids = skel_graph.nodes()
 
+    ### Direct based on black list edges
+    if blacklist_single:
+        for [i, j] in blacklist_single:
+            if dag.has_edge(i, j):
+                dag.remove_edge(i, j)
+    
     
     ### Direct based on Known edges
     if know_edge_list:
@@ -376,7 +382,7 @@ def nameMapping(df):
     ### Map integer to name
     mapping = {i: name for i, name in enumerate(df.columns)}
     return mapping
-    
+
 def heatmap(data, row_labels, col_labels, ax=None,
             cbar_kw={}, cbarlabel="", **kwargs):
     """
@@ -548,7 +554,7 @@ def plotgraph(g, mapping):
     fig.tight_layout()
     plt.show()
     """
-    
+
 
 def savegraph(gs, corr_matrix, mapping, edgeType):
     from collections import Counter, OrderedDict  # if MI_DATASET is 1, still need to run this
@@ -597,18 +603,23 @@ def savegraph(gs, corr_matrix, mapping, edgeType):
     graph_excel_single.to_csv("graph_excel_single_direction.csv", index=False)
     graph_excel_bi = pd.DataFrame.from_dict(graph_excel_bi)
     graph_excel_bi.to_csv("graph_excel_bidirection.csv", index=False)  
-    
+
 
 
 def getblackList(df, blacklist, node_size):
     node_ids = range(node_size)
     init_graph = _create_complete_graph(node_ids)
+    black_edges = set()
     with open(blacklist, 'rb') as f:
         for line in f.readlines():
             cause, effect = line.splitlines()[0].decode("utf-8").split(',')
             i, j = df.columns.get_loc(cause.strip()), df.columns.get_loc(effect.strip())
-            init_graph.remove_edge(i,j)
-    return init_graph
+            black_edges |= {(i, j)}
+    
+    blacklist_single = set((i,j) for (i,j) in black_edges if (j, i) not in black_edges)
+    init_graph.remove_edges_from([(i,j) for (i, j) in black_edges if i < j and (j, i) in black_edges])
+
+    return init_graph, blacklist_single
 
 
 
@@ -704,7 +715,7 @@ def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputa
 
         ### Blacklist
         if blackListFile:
-            init_graph = getblackList(df, blackListFile, node_size)
+            init_graph, blacklist_single = getblackList(df, blackListFile, node_size)
         else:
             init_graph = _create_complete_graph(range(node_size))
 
@@ -727,7 +738,11 @@ def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputa
                                              know_edge_list=know_edge_list,
                                              method='stable')
 
-        g = estimate_cpdag(skel_graph=g, sep_set=sep_set, timeInfoDict=timeInfoDict, know_edge_list=know_edge_list)
+        g = estimate_cpdag(skel_graph=g, 
+                           sep_set=sep_set, 
+                           timeInfoDict=timeInfoDict, 
+                           know_edge_list=know_edge_list,
+                          blacklist_single=blacklist_single)
 
         en = time.time()
         print("Total running time:", en-st)
