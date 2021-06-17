@@ -33,10 +33,10 @@ Check out the Jupyter Notebook `fastPC Demo` to see a demonstration of the funct
 
 
 ### Data
-Required: Dataset containing multiple random variables
-
-File format: 
-Excel file with header and a column for each random variable. 
+Required: data.csv (CSV file with variable names as header, column: variable, row: samples)
+Optional: blacklist (TXT file, each line denotes an edge that must NOT exist, separate by ",". E.g. if we know var_1 cannot cause var_2, write "var_1, var_2" in one line)
+knownedges.txt (TXT file, each line denotes an edge that COULD (not must) exist that we already know direction, separate by ",". E.g. if we know var_1 - var_2, then the direction must be var_1 -> var_2, then write "var_1, var_2" in one line)
+tiers.txt (TXT file, each line denotes all variables that belong to same tier, edge directions can onlt point from former to same or later tiers, later tiers can NOT point to former tiers)
 
 #### Data provided
 The folder 'data' contains one small dataset for demonstration purposes.
