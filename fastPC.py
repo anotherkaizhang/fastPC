@@ -718,6 +718,7 @@ def main(dataFile, alpha, cuda, knownEdgesFile, blackListFile, tiersFile, imputa
             init_graph, blacklist_single = getblackList(df, blackListFile, node_size)
         else:
             init_graph = _create_complete_graph(range(node_size))
+            blacklist_single = None
 
         ### Tiers
         if tiersFile:
